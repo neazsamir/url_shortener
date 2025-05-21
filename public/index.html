@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link rel="stylesheet" href="style.css">
+	<title>Url shortener</title>
+</head>
+<body>
+	<div class="container">
+		<h1>URL Shortener</h1>
+		<form>
+			<label for="url">Url to short:</label>
+			<input id="url" name="url" type="text" required="" placeholder="Enter the url to short.">
+			<label for="customUrl">Custom url. (optional):</label>
+			<input id="customUrl" name="customUrl" type="text" optional="" placeholder="Enter your custom url. (optional)">
+			<button type="submit">Shorten</button>
+		</form>
+		<ul>
+			
+		</ul>
+	</div>
+	<script>
+	
+	
+	const fetchShortenedUrl = async () => {
+		try {
+			const res = await fetch('/links', {
+					method: "GET",
+					headers: {
+					authorization: 'e83622cc6703f962cd65a1367aacdf3109781b1a5da24080a8d85fc6ce152b1c',
+					"Content-Type": "application/json",
+				},
+				})
+			const data = await res.json()
+			if (res.ok) {
+				const ul = document.querySelector('ul')
+				ul.innerHTML = ''
+			for	(const [shortened, original] of Object.entries(data.links)) {
+					const li = document.createElement('li')
+					const truncatedURL = original.length > 30 ? `${original.slice(0, 35)}....` : original
+					li.innerHTML = `${truncatedURL} => <a href="/${shortened}" target="_blank">${window.location.origin}/${shortened}</a>`
+					ul.appendChild(li)
+				}
+			}
+		} catch (e) {
+		}
+	}
+	
+	document.querySelector("form").addEventListener("submit", async (e) => {
+		e.preventDefault()
+		const formData = new FormData(e.target)
+		let url = formData.get("url").toLowerCase()
+		const customUrl = formData.get("customUrl").trim()
+		if (!url.trim()) {
+			alert("URL is required.")
+			return
+		}
+		if (!url.includes("https://www.")) url = "https://www." + url
+		try {
+			const res = await fetch('/shorten', {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({url, customUrl}),
+			})
+			const data = await res.json()
+			if (res.ok) {
+				fetchShortenedUrl()
+				alert("Form submitted.")
+			} else {
+				alert(data.error)
+				console.log(res)
+			}
+		} catch (e) {
+		} finally {
+			e.target.reset()
+		}
+	}
+)
+
+fetchShortenedUrl()
+		
+		
+		
+		
+	</script>
+</body>
+</html>
